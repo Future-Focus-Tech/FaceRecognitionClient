@@ -18,6 +18,7 @@ var getImageFrame = function(){
 	}
 	if (faces.length == 3){
 		clearInterval(timeIntervalId);
+		$.post('http://10.136.22.206:9090',faces);
 	}
 };
 
