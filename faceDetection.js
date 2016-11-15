@@ -15,25 +15,50 @@ var timeIntervalId;
 var getImageFrame = function(){
 	if(faceData){
 		faces.push(faceData);
+        faceData = null;
 	}
-	if (faces.length == 3){
+	if (faces.length == 5){
 		clearInterval(timeIntervalId);
-        $.post('http://10.136.22.247:9090',faces);
+        console.log(faces);
+        $.ajax({
+            type : "POST",
+            url : "http://localhost:9090/face/",
+            data : {
+                facesData : faces
+            },
+            success : function(response){
+                console.log('successful');
+            },
+            error : function(e){
+                console.log('Error: '+e);
+            }
+        });
 	}
 };
 
 tracker.on('track', function(event) {
 	if(!timeIntervalId)
-		timeIntervalId = setInterval(getImageFrame, 3000);
+		timeIntervalId = setInterval(getImageFrame, 2000);
 	context.clearRect(0, 0, canvas.width, canvas.height);
 	event.data.forEach(function(rect) {
-    	context.drawImage(video, 320, 240);
+    	context.drawImage(video, 0, 0, 320, 240);
 		context.strokeStyle = '#ff0000';
 		context.strokeRect(rect.x, rect.y, rect.width, rect.height);
 		context.font = '11px Helvetica';
 		context.fillStyle = "#fff";
 		context.fillText('x: ' + rect.x + 'px', rect.x + rect.width + 5, rect.y + 11);
 		context.fillText('y: ' + rect.y + 'px', rect.x + rect.width + 5, rect.y + 22);
-		faceData = context.getImageData(rect.x, rect.y, rect.width, rect.height);
+		faceDataFromVideo = context.getImageData(rect.x, rect.y, rect.width, rect.height);
+        generateBase64Data(faceDataFromVideo, rect.width, rect.height);
     });
 });
+
+
+var generateBase64Data = function(imageData, width, height){
+    var tempCanvas = document.createElement('canvas');
+    tempCanvas.width = width;
+    tempCanvas.height = height;
+    var tempCanvasContext = tempCanvas.getContext('2d');
+    tempCanvasContext.putImageData(imageData,0,0);
+    faceData = tempCanvas.toDataURL("image/png");
+}
